@@ -1,6 +1,7 @@
 import subprocess
 import datetime
 import os
+from datetime import date
 
 # Απόλυτο path του project (ο φάκελος που περιέχει το settings.py)
 PROJECT_DIR = r"C:\Users\user\Documents\Python\PythonProject\marketscraper\marketscraper"
@@ -11,6 +12,8 @@ VENV_PYTHON = r"C:\Users\user\Documents\Python\PythonProject\.venv\Scripts\pytho
 
 def run_spider():
     print(f"[{datetime.datetime.now()}] ▶️ Εκκίνηση spider...")
+    with open("copy.txt", "a", encoding="utf-8") as file:
+        file.write(f'----------{date.today()}----------\n')
 
     subprocess.run(
         [VENV_PYTHON, "-m", "scrapy", "crawl", "sklspider"],
