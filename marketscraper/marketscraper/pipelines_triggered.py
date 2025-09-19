@@ -1,6 +1,7 @@
 import sqlite3
 from itemadapter import ItemAdapter
 from datetime import date
+import os
 
 class SQLitePipeline:
     def open_spider(self, spider):
@@ -43,6 +44,7 @@ class SQLitePipeline:
         subcategory = adapter.get('subcategory')
         products = adapter.get('products')
 
+
         for prod in products:
             name = prod.get('name')
             price = prod.get('price')
@@ -53,10 +55,31 @@ class SQLitePipeline:
                 VALUES (?, ?, ?, ?, ?, ?)
             """, (name, category, subcategory, price, price_kg, str(date.today())))
 
+            #Block to notify price change
+            #Δεδομένου ότι περιέχεται το προϊόν στο table, και έρχεται απλά με νέα τιμή.
+            #Γίνεται ignore στο instert και θα πάει για update τιμής.
+            #Πρίν το update τιμής, φέρνω το παλιό με μια select και συγκρίνω.
+            #Αν υπάρχει διαφορά τιμής υπάρχοντος αγαπημένου προϊόντος, ειδοποιείται.
+            self.cursor.execute("""
+                SELECT name, price, favorite
+                FROM products
+                WHERE name = ? AND category = ? AND subcategory = ?
+            """, (name, category, subcategory))
+            row = self.cursor.fetchone()
+
+            if row[0] == name and row[2] == 1:
+                with open("copy.txt", "a", encoding="utf-8") as file:
+                    file.write(f'Αγαπημένο {prod['name']}\n'
+                               f'Νέα τιμή: {prod["price"]}\n'
+                               f'Παλιά τιμή: {row[1]}\n\n')
+
+
+            #upd database with new price
             self.cursor.execute("""
                 UPDATE products
                 SET price=?, price_kg=?, last_seen=?
                 WHERE name=? AND category=? AND subcategory=?
             """, (price, price_kg, str(date.today()), name, category, subcategory))
+
 
         return item
