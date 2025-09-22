@@ -122,7 +122,7 @@ class SklSpider(scrapy.Spider):
         prod_item['subcategory'] = subcat_name
         prod_item['products'] = prod_list
 
-        #print(f"✅ Υποκατηγορία: {subcat_name} — Προϊόντα: {len(prod_list)}")
+        #print(f"Υποκατηγορία: {subcat_name} — Προϊόντα: {len(prod_list)}")
         yield prod_item
 
 
