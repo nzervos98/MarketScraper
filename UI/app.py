@@ -14,6 +14,7 @@ def get_db():
 
 @app.route("/")
 def index():
+    #extract args in html filter sections
     q = request.args.get("q", "").strip()
     category = request.args.get("category", "").strip()
     subcategory = request.args.get("subcategory", "").strip()
@@ -22,7 +23,7 @@ def index():
     conn = get_db()
     cur = conn.cursor()
 
-    # fetch filter lists
+    # fetch filter lists - fetchall when app launches
     cur.execute("SELECT DISTINCT category FROM products ORDER BY category COLLATE NOCASE")
     categories = [r[0] for r in cur.fetchall() if r[0]]
 
@@ -34,19 +35,19 @@ def index():
     # build query
     sql = "SELECT id, name, category, subcategory, price, price_kg, last_seen, favorite FROM products WHERE 1=1"
     params = []
-
+    #word search
     if q:
         sql += " AND name LIKE ?"
         params.append(f"%{q}%")
-
+    #filter by cat
     if category:
         sql += " AND category=?"
         params.append(category)
-
+    #filter by subcat
     if subcategory:
         sql += " AND subcategory=?"
         params.append(subcategory)
-
+    #filter by fav status
     if favorite in ("0", "1"):
         sql += " AND favorite=?"
         params.append(int(favorite))
@@ -65,6 +66,7 @@ def index():
                            query=q,
                            favorite=favorite)
 
+#com with js function - update fav = 1 or fav = 0 on button click
 @app.route("/toggle-favorite/<int:product_id>", methods=["POST"])
 def toggle_favorite(product_id):
     conn = get_db()
@@ -78,6 +80,7 @@ def toggle_favorite(product_id):
     conn.commit()
     return jsonify({"ok": True, "favorite": new_val})
 
+#select from price history function based on each prod
 @app.route("/history/<int:product_id>")
 def history(product_id):
     conn = get_db()
